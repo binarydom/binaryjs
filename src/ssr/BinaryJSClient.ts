@@ -1,5 +1,6 @@
-import { BinaryDOMNode } from 'binarydom';
-import { BinaryDOMRenderer } from 'binarydom';
+import { BinaryDOMNode, BinaryDOMRenderer } from "binarydom";
+
+type ConcreteClientComponent = new (...args: any[]) => ClientComponent;
 
 /**
  * Represents a client-side hydration context
@@ -7,7 +8,7 @@ import { BinaryDOMRenderer } from 'binarydom';
 export class ClientContext {
   private static instance: ClientContext;
   private hydrationData: Map<string, any> = new Map();
-  private componentRegistry: Map<string, typeof ClientComponent> = new Map();
+  private componentRegistry: Map<string, ConcreteClientComponent> = new Map();
 
   private constructor() {
     // Initialize hydration data from window
@@ -26,11 +27,11 @@ export class ClientContext {
     return ClientContext.instance;
   }
 
-  registerComponent(name: string, component: typeof ClientComponent) {
+  registerComponent(name: string, component: ConcreteClientComponent) {
     this.componentRegistry.set(name, component);
   }
 
-  getComponent(name: string): typeof ClientComponent | undefined {
+  getComponent(name: string): ConcreteClientComponent | undefined {
     return this.componentRegistry.get(name);
   }
 
@@ -91,7 +92,7 @@ export class BinaryJSClient {
   private rootComponent: ClientComponent | null = null;
 
   constructor() {
-    this.renderer = new BinaryDOMRenderer(document.createElement('div'));
+    this.renderer = new BinaryDOMRenderer(document.createElement("div"));
     this.context = ClientContext.getInstance();
   }
 
@@ -107,7 +108,7 @@ export class BinaryJSClient {
   /**
    * Registers a component for hydration
    */
-  registerComponent(name: string, component: typeof ClientComponent) {
+  registerComponent(name: string, component: ConcreteClientComponent) {
     this.context.registerComponent(name, component);
   }
 
@@ -115,9 +116,9 @@ export class BinaryJSClient {
    * Hydrates all components in the DOM
    */
   hydrateAll() {
-    const components = document.querySelectorAll('[data-component]');
-    components.forEach(element => {
-      const componentName = element.getAttribute('data-component');
+    const components = document.querySelectorAll("[data-component]");
+    components.forEach((element) => {
+      const componentName = element.getAttribute("data-component");
       if (componentName) {
         const ComponentClass = this.context.getComponent(componentName);
         if (ComponentClass) {
@@ -134,30 +135,32 @@ export class BinaryJSClient {
  */
 export class UserProfileClientComponent extends ClientComponent {
   render(): BinaryDOMNode {
-    const userData = this.getState('userData');
+    const userData = this.getState("userData");
 
     return {
-      type: 'element',
-      tagName: 'div',
-      id: 'user-profile',
+      type: "element",
+      tagName: "div",
+      id: "user-profile",
       props: {
-        className: 'user-profile',
-        children: [{
-          type: 'text',
-          id: 'user-name',
-          value: userData?.name || 'Loading...',
-          props: {},
-          attributes: new Map(),
-          children: [],
-          left: null,
-          right: null,
-          checksum: 0,
-          isDirty: false,
-          parent: null,
-          eventHandlers: new Map(),
-          state: null,
-          hooks: []
-        }]
+        className: "user-profile",
+        children: [
+          {
+            type: "text",
+            id: "user-name",
+            value: userData?.name || "Loading...",
+            props: {},
+            attributes: new Map(),
+            children: [],
+            left: null,
+            right: null,
+            checksum: 0,
+            isDirty: false,
+            parent: null,
+            eventHandlers: new Map(),
+            state: null,
+            hooks: [],
+          },
+        ],
       },
       attributes: new Map(),
       children: [],
@@ -168,7 +171,14 @@ export class UserProfileClientComponent extends ClientComponent {
       parent: null,
       eventHandlers: new Map(),
       state: null,
-      hooks: []
+      hooks: [],
     };
   }
-} 
+}
+
+// Only register concrete components
+const client = new BinaryJSClient();
+client.registerComponent(
+  "UserProfileClientComponent",
+  UserProfileClientComponent
+);
