@@ -121,21 +121,77 @@ class BinaryJSCoreExamples {
   static hooksExamples() {
     const hooks = new BinaryJSHooks();
 
-    // useState Hook
-    const [count, setCount] = hooks.useState(0);
+    // Create state with binary tree optimization
+    const [count, setCount] = hooks.createState(0);
 
-    // useEffect Hook
-    hooks.useEffect(() => {
+    // Create effect with binary tree optimization
+    hooks.createEffect(() => {
       console.log("Count changed:", count);
     }, [count]);
 
-    // useMemo Hook
-    const doubledCount = hooks.useMemo(() => count * 2, [count]);
+    // Create memo with binary tree optimization
+    const doubledCount = hooks.createMemo(() => count * 2, [count]);
 
-    // useCallback Hook
-    const increment = hooks.useCallback(() => {
+    // Create callback with binary tree optimization
+    const increment = hooks.createCallback(() => {
       setCount(count + 1);
     }, [count]);
+
+    // Example of using hooks in a component
+    class CounterComponent extends BinaryJSComponent {
+      private hooks: BinaryJSHooks;
+
+      constructor() {
+        super();
+        this.hooks = new BinaryJSHooks();
+      }
+
+      async render(): Promise<BinaryDOMNode> {
+        const [count, setCount] = this.hooks.createState(0);
+        const doubled = this.hooks.createMemo(() => count * 2, [count]);
+
+        this.hooks.createEffect(() => {
+          console.log("Counter updated:", count);
+        }, [count]);
+
+        return {
+          type: "element",
+          tagName: "div",
+          id: "counter",
+          props: {
+            className: "counter",
+            children: [
+              {
+                type: "text",
+                id: "count",
+                value: String(doubled),
+                props: {},
+                attributes: new Map(),
+                children: [],
+                left: null,
+                right: null,
+                checksum: 0,
+                isDirty: false,
+                parent: null,
+                eventHandlers: new Map(),
+                state: null,
+                hooks: [],
+              },
+            ],
+          },
+          attributes: new Map(),
+          children: [],
+          left: null,
+          right: null,
+          checksum: 0,
+          isDirty: false,
+          parent: null,
+          eventHandlers: new Map(),
+          state: null,
+          hooks: [],
+        };
+      }
+    }
   }
 
   /**
