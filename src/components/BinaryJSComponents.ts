@@ -6,7 +6,7 @@ import { StyledComponent } from "../core/BinaryJSStyle";
 /**
  * Base class for all predefined components
  */
-abstract class BinaryJSComponent extends StyledComponent {
+export abstract class BinaryJSComponent extends StyledComponent {
   protected lifecycle: BinaryJSLifecycle;
   protected state: BinaryJSState;
 

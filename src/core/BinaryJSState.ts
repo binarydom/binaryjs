@@ -3,7 +3,7 @@ import { BinaryDOMNode } from "binarydom";
 /**
  * Storage types for state persistence
  */
-enum StorageType {
+export enum StorageType {
   LOCAL = "localStorage",
   SESSION = "sessionStorage",
   COOKIE = "cookie",
@@ -316,3 +316,35 @@ await userProfile.updateUserData({ name: "John Doe" });
 
 // Render component
 const renderedNode = await userProfile.render();
+
+export class BinaryJSState {
+  private static instance: BinaryJSState;
+  private store: BinaryJSStore<any>;
+
+  public static getInstance(): BinaryJSState {
+    if (!BinaryJSState.instance) {
+      BinaryJSState.instance = new BinaryJSState();
+    }
+    return BinaryJSState.instance;
+  }
+
+  private constructor() {
+    this.store = BinaryJSStore.getInstance();
+  }
+
+  public setState<T>(key: string, value: T): void {
+    this.store.set(key, value);
+  }
+
+  public getState<T>(key: string): T | undefined {
+    return this.store.get(key);
+  }
+
+  public subscribe<T>(key: string, callback: (value: T) => void): void {
+    this.store.addListener((event) => {
+      if (event.key === key) {
+        callback(event.newValue);
+      }
+    });
+  }
+}

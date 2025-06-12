@@ -55,16 +55,16 @@ export class BinaryJSApiClient {
     dedupeTime: 1000,
   };
 
-  private constructor(apiConfig: ApiServiceConfig) {
-    this.api = BinaryJSApi.getInstance(apiConfig);
-    this.initializeFocusListener();
-  }
-
-  static getInstance(apiConfig?: ApiServiceConfig): BinaryJSApiClient {
-    if (!BinaryJSApiClient.instance && apiConfig) {
-      BinaryJSApiClient.instance = new BinaryJSApiClient(apiConfig);
+  public static getInstance(): BinaryJSApiClient {
+    if (!BinaryJSApiClient.instance) {
+      BinaryJSApiClient.instance = new BinaryJSApiClient();
     }
     return BinaryJSApiClient.instance;
+  }
+
+  public constructor() {
+    this.api = BinaryJSApi.getInstance();
+    this.initializeFocusListener();
   }
 
   private initializeFocusListener(): void {
@@ -245,7 +245,7 @@ export abstract class QueryComponent {
   protected listeners: Set<() => void> = new Set();
 
   constructor(apiConfig: ApiServiceConfig) {
-    this.client = BinaryJSApiClient.getInstance(apiConfig);
+    this.client = BinaryJSApiClient.getInstance();
   }
 
   protected abstract onQueryUpdate(): void;
