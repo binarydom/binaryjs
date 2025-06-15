@@ -73,7 +73,7 @@ export abstract class BinaryJSComponent<P = {}, S = {}> {
   }
 
   // Abstract methods
-  protected abstract render(): BinaryDOMNode;
+  public abstract render(): BinaryDOMNode;
   protected abstract update(newElement: BinaryDOMNode): void;
 
   // Hook system

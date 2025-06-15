@@ -2,6 +2,7 @@ import { BinaryDOMRenderer, BinaryDOMNode } from "binarydom";
 import { BinaryJSState } from "./BinaryJSState";
 import { BinaryJSHooks } from "./BinaryJSHooks";
 import { BinaryJSApiClient } from "./BinaryJSApiClient";
+import { BinaryJSComponent } from "../components/BinaryJSComponent";
 
 export class BinaryJS {
   private renderer: BinaryDOMRenderer;
@@ -76,7 +77,7 @@ export class BinaryJS {
     });
   }
 
-  public getState<T>(key: string): T | null {
+  public getState<T>(key: string): T | undefined {
     return this.state.getState<T>(key);
   }
 
@@ -86,8 +87,8 @@ export class BinaryJS {
     this.performanceMetrics.set("state", performance.now() - startTime);
   }
 
-  public subscribe<T>(key: string, callback: (value: T) => void): () => void {
-    return this.state.subscribe(key, callback);
+  public subscribe<T>(key: string, callback: (value: T) => void): void {
+    this.state.subscribe(key, callback);
   }
 
   public useHook<T>(
@@ -109,7 +110,7 @@ export class BinaryJS {
   }
 
   public static createComponent<P = {}, S = {}>(
-    Component: new (props: P) => any,
+    Component: new (props: P) => BinaryJSComponent<P, S>,
     props: P
   ): BinaryDOMNode {
     const instance = new Component(props);
@@ -117,7 +118,7 @@ export class BinaryJS {
   }
 
   public static createElement(
-    type: string | Function,
+    type: string | (new (props: any) => BinaryJSComponent),
     props: any = {},
     ...children: any[]
   ): BinaryDOMNode {

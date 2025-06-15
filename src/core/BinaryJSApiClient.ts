@@ -54,6 +54,8 @@ export class BinaryJSApiClient {
     retryOnError: true,
     dedupeTime: 1000,
   };
+  private cache: Map<string, { data: any; timestamp: number }> = new Map();
+  private defaultTimeout: number = 5000;
 
   public static getInstance(): BinaryJSApiClient {
     if (!BinaryJSApiClient.instance) {
@@ -233,6 +235,40 @@ export class BinaryJSApiClient {
     if (this.focusListener && typeof window !== "undefined") {
       window.removeEventListener("focus", this.focusListener);
     }
+  }
+
+  public async fetch<T>(url: string, options?: RequestInit): Promise<T> {
+    const cacheKey = this.getCacheKey(url, options);
+    const cachedData = this.cache.get(cacheKey);
+
+    if (cachedData && Date.now() - cachedData.timestamp < this.defaultTimeout) {
+      return cachedData.data as T;
+    }
+
+    const response = await fetch(url, {
+      ...options,
+      signal: AbortSignal.timeout(this.defaultTimeout),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    this.cache.set(cacheKey, {
+      data,
+      timestamp: Date.now(),
+    });
+
+    return data as T;
+  }
+
+  private getCacheKey(url: string, options?: RequestInit): string {
+    return `${url}_${JSON.stringify(options || {})}`;
+  }
+
+  public clearCache(): void {
+    this.cache.clear();
   }
 }
 

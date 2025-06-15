@@ -3,22 +3,13 @@ import { BinaryDOMNode } from "binarydom";
 /**
  * Hook node in the binary tree
  */
-class HookNode<T> {
+interface HookNode<T> {
   value: T;
   left: HookNode<T> | null;
   right: HookNode<T> | null;
   parent: HookNode<T> | null;
-  checksum: number;
   isDirty: boolean;
-
-  constructor(value: T) {
-    this.value = value;
-    this.left = null;
-    this.right = null;
-    this.parent = null;
-    this.checksum = 0;
-    this.isDirty = false;
-  }
+  checksum: number;
 }
 
 /**
@@ -31,12 +22,20 @@ export class BinaryJSHooks {
   private hooks: Map<string, HookNode<any>> = new Map();
   private effects: Set<() => void> = new Set();
   private memoCache: Map<string, any> = new Map();
+  private currentHookIndex: number = 0;
 
   /**
    * Create a new hook node
    */
   private createHookNode<T>(value: T): HookNode<T> {
-    const node = new HookNode(value);
+    const node = {
+      value,
+      left: null,
+      right: null,
+      parent: null,
+      isDirty: false,
+      checksum: 0,
+    };
     if (!this.hookTree) {
       this.hookTree = node;
     } else {
@@ -164,5 +163,36 @@ export class BinaryJSHooks {
   reset(): void {
     this.hookIndex = 0;
     this.currentHook = null;
+  }
+
+  public useHook<T>(
+    hookType: string,
+    initialValue: T
+  ): [T, (value: T) => void] {
+    const hookKey = `${hookType}_${this.currentHookIndex}`;
+
+    if (!this.hooks.has(hookKey)) {
+      this.hooks.set(hookKey, {
+        value: initialValue,
+        left: null,
+        right: null,
+        parent: null,
+        isDirty: false,
+        checksum: 0,
+      });
+    }
+
+    const hookNode = this.hooks.get(hookKey)!;
+    const setValue = (value: T) => {
+      hookNode.value = value;
+      hookNode.isDirty = true;
+    };
+
+    this.currentHookIndex++;
+    return [hookNode.value, setValue];
+  }
+
+  public resetHookIndex(): void {
+    this.currentHookIndex = 0;
   }
 }
